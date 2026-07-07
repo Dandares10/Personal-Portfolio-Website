@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Rivera — Software Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1a1d23;
+    --panel: #20242b;
+    --panel-2: #262b33;
+    --border: #333a45;
+    --text: #e8e6e0;
+    --text-dim: #9198a3;
+    --accent-blue: #7fb4ca;
+    --accent-amber: #d68c45;
+    --accent-green: #8fae6b;
+    --accent-red: #c9756a;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  a{ color: inherit; }
+
+  ::selection{ background: var(--accent-blue); color: #14171b; }
+
+  /* ---------- Top tab bar ---------- */
+  .tabbar{
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: stretch;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabbar::-webkit-scrollbar{ display:none; }
+
+  .tab{
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--border);
+    padding: 0.9rem 1.2rem;
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .tab:hover{ color: var(--text); background: var(--panel-2); }
+  .tab.active{ color: var(--accent-blue); background: var(--bg); }
+  .tab.active::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:-1px;
+    height:2px;
+    background: var(--accent-blue);
+  }
+  .tab .dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    margin-left:8px;
+    background: var(--accent-amber);
+    opacity: 0;
+  }
+  .tab.dirty .dot{ opacity: 1; }
+
+  .tabbar .brand{
+    margin-left: auto;
+    padding: 0.9rem 1.2rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  /* ---------- Layout ---------- */
+  .editor{
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 47px);
+  }
+
+  .sidebar{
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+  .sidebar .folder{
+    color: var(--text-dim);
+    padding: 0.4rem 1.2rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+  }
+  .sidebar .file{
+    display: block;
+    padding: 0.45rem 1.2rem 0.45rem 2rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .sidebar .file:hover{ color: var(--text); background: var(--panel); }
+  .sidebar .file.active{
+    color: var(--accent-blue);
+    border-left-color: var(--accent-blue);
+    background: var(--panel);
+  }
+  .sidebar .file .ext{ color: var(--text-dim); opacity: 0.6; }
+
+  @media (max-width: 780px){
+    .editor{ grid-template-columns: 1fr; }
+    .sidebar{ display:none; }
+  }
+
+  main{ min-width: 0; }
+
+  section{
+    padding: 3.5rem 3rem 4rem;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 50px;
+  }
+  @media (max-width: 780px){
+    section{ padding: 2.5rem 1.25rem 3rem; }
+  }
+
+  .comment{
+    font-family: var(--mono);
+    color: var(--accent-green);
+    opacity: 0.85;
+    font-size: 0.82rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .lined{
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    column-gap: 1rem;
+  }
+  .lined .ln{
+    font-family: var(--mono);
+    color: var(--text-dim);
+    opacity: 0.45;
+    font-size: 0.78rem;
+    text-align: right;
+    user-select: none;
+    padding-top: 0.15rem;
+  }
+  @media (max-width: 560px){
+    .lined{ grid-template-columns: 1.6rem 1fr; column-gap: 0.6rem; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding-top: 4.5rem; }
+  .hero .kw{ color: var(--accent-blue); }
+  .hero .fn{ color: var(--accent-amber); }
+  .hero .str{ color: var(--accent-green); }
+  .hero .punc{ color: var(--text-dim); }
+
+  .hero h1{
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: clamp(1.5rem, 4vw, 2.6rem);
+    line-height: 1.35;
+  }
+  .cursor{
+    display: inline-block;
+    width: 0.55ch;
+    background: var(--accent-blue);
+    margin-left: 2px;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity: 0; } }
+
+  .hero p.tagline{
+    margin-top: 1.4rem;
+    max-width: 46ch;
+    color: var(--text-dim);
+    font-size: 1.05rem;
+  }
+
+  .hero .cta-row{
+    margin-top: 2rem;
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+  }
+  .btn{
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    padding: 0.7rem 1.2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+  }
+  .btn:focus-visible{ outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+  .btn.primary{
+    background: var(--accent-blue);
+    color: #14171b;
+    border-color: var(--accent-blue);
+    font-weight: 600;
+  }
+  .btn.primary:hover{ transform: translateY(-1px); }
+  .btn.ghost{ color: var(--text); }
+  .btn.ghost:hover{ border-color: var(--accent-blue); color: var(--accent-blue); }
+
+  /* ---------- Section headers ---------- */
+  h2.sectitle{
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  h2.sectitle .path{ color: var(--text-dim); font-size: 0.85rem; font-weight: 400; }
+
+  /* ---------- About ---------- */
+  .about-body p{ color: var(--text-dim); max-width: 62ch; margin-bottom: 1rem; }
+  .about-body strong{ color: var(--text); font-weight: 600; }
+
+  .stack{
+    margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .stack span{
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    padding: 0.35rem 0.7rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--accent-blue);
+  }
+
+  /* ---------- Projects ---------- */
+  .projects-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .project-card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.4rem 1.4rem 1.2rem;
+    transition: border-color 0.18s ease, transform 0.18s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .project-card:hover{ border-color: var(--accent-blue); transform: translateY(-2px); }
+  .project-card .diff{
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--accent-green);
+    margin-bottom: 0.6rem;
+  }
+  .project-card .diff::before{ content: "+ "; }
+  .project-card h3{
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+  .project-card p{
+    color: var(--text-dim);
+    font-size: 0.92rem;
+    margin-bottom: 1rem;
+  }
+  .project-card .tags{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  .project-card .tags span{
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent-amber);
+    background: rgba(214,140,69,0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+  }
+  .project-card .links{ display: flex; gap: 1rem; }
+  .project-card .links a{
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--accent-blue);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .project-card .links a:hover{ border-bottom-color: var(--accent-blue); }
+
+  /* ---------- Experience ---------- */
+  .timeline{ position: relative; padding-left: 1.6rem; }
+  .timeline::before{
+    content:"";
+    position: absolute;
+    left: 4px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: var(--border);
+  }
+  .tl-item{ position: relative; margin-bottom: 2.2rem; }
+  .tl-item:last-child{ margin-bottom: 0; }
+  .tl-item::before{
+    content:"";
+    position: absolute;
+    left: -1.6rem;
+    top: 6px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--accent-blue);
+  }
+  .tl-item .meta{
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+  }
+  .tl-item h3{ font-size: 1.05rem; margin-bottom: 0.35rem; }
+  .tl-item h3 .role{ color: var(--accent-amber); }
+  .tl-item p{ color: var(--text-dim); font-size: 0.92rem; max-width: 60ch; }
+
+  /* ---------- Contact ---------- */
+  .contact-body{
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .contact-row{
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+  }
+  .contact-row .k{ color: var(--accent-blue); min-width: 5.5rem; }
+  .contact-row a{ text-decoration: none; color: var(--text); border-bottom: 1px solid var(--border); }
+  .contact-row a:hover{ color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+
+  footer{
+    padding: 2rem 3rem 3rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  @media (max-width: 780px){ footer{ padding: 2rem 1.25rem 2.5rem; } }
+</style>
+</head>
+<body>
+
+<div class="tabbar" role="tablist" aria-label="Section tabs">
+  <button class="tab active" data-target="hero" role="tab" aria-selected="true">hero.js<span class="dot"></span></button>
+  <button class="tab" data-target="about" role="tab" aria-selected="false">about.js<span class="dot"></span></button>
+  <button class="tab" data-target="projects" role="tab" aria-selected="false">projects.js<span class="dot"></span></button>
+  <button class="tab" data-target="experience" role="tab" aria-selected="false">experience.js<span class="dot"></span></button>
+  <button class="tab" data-target="contact" role="tab" aria-selected="false">contact.js<span class="dot"></span></button>
+  <span class="brand">~/alex-rivera/portfolio</span>
+</div>
+
+<div class="editor">
+
+  <nav class="sidebar" aria-label="File explorer">
+    <div class="folder">src/</div>
+    <a class="file active" data-target="hero" href="#hero">hero<span class="ext">.js</span></a>
+    <a class="file" data-target="about" href="#about">about<span class="ext">.js</span></a>
+    <a class="file" data-target="projects" href="#projects">projects<span class="ext">.js</span></a>
+    <a class="file" data-target="experience" href="#experience">experience<span class="ext">.js</span></a>
+    <a class="file" data-target="contact" href="#contact">contact<span class="ext">.js</span></a>
+  </nav>
+
+  <main>
+
+    <section id="hero" class="hero">
+      <p class="comment">// welcome to the codebase</p>
+      <h1>
+        <span class="kw">const</span> developer <span class="punc">=</span> <span class="fn">build</span><span class="punc">(</span><span class="str">"Alex Rivera"</span><span class="punc">);</span><span class="cursor"></span>
+      </h1>
+      <p class="tagline">
+        Full-stack developer who turns rough ideas into fast, dependable software — from API to pixel. Currently building distributed systems and the occasional side project no one asked for.
+      </p>
+      <div class="cta-row">
+        <a class="btn primary" href="#projects">View projects</a>
+        <a class="btn ghost" href="#contact">Get in touch</a>
+        <a class="btn ghost" href="#" download>Download résumé</a>
+      </div>
+    </section>
+
+    <section id="about">
+      <p class="comment">// about.js — 12 lines</p>
+      <h2 class="sectitle">about<span class="path">src/about.js</span></h2>
+      <div class="lined about-body">
+        <div class="ln">01<br>02<br>03<br>04<br>05<br>06<br>07</div>
+        <div>
+          <p>I'm a software developer with <strong>6 years</strong> of experience building products across the stack — React and TypeScript on the front end, Node and Postgres underneath, and enough Terraform to keep it all running at 3am without paging me.</p>
+          <p>I like problems that are 90% clear thinking and 10% code. Most of my best work has come from asking "does this need to exist" before asking "how do I build this."</p>
+          <p>Outside of work: mechanical keyboards, distance running, and rebuilding this portfolio slightly differently every year.</p>
+          <div class="stack">
+            <span>TypeScript</span><span>React</span><span>Node.js</span><span>PostgreSQL</span>
+            <span>AWS</span><span>Docker</span><span>GraphQL</span><span>Python</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects">
+      <p class="comment">// projects.js — exports 3 modules</p>
+      <h2 class="sectitle">projects<span class="path">src/projects.js</span></h2>
+      <div class="projects-grid">
+
+        <div class="project-card">
+          <div class="diff">142 commits</div>
+          <h3>Routewise</h3>
+          <p>A logistics routing engine that cut last-mile delivery times by 18% for a regional courier network, using a custom constraint solver.</p>
+          <div class="tags"><span>TypeScript</span><span>Postgres</span><span>Redis</span></div>
+          <div class="links"><a href="#">Live demo →</a><a href="#">Source →</a></div>
+        </div>
+
+        <div class="project-card">
+          <div class="diff">89 commits</div>
+          <h3>Ledger</h3>
+          <p>Open-source double-entry accounting API built for small dev teams who want real financial correctness without a heavyweight ERP.</p>
+          <div class="tags"><span>Node.js</span><span>GraphQL</span></div>
+          <div class="links"><a href="#">Live demo →</a><a href="#">Source →</a></div>
+        </div>
+
+        <div class="project-card">
+          <div class="diff">57 commits</div>
+          <h3>Pixel Pace</h3>
+          <p>A local-first running tracker with offline maps and a stubbornly minimal UI, built as a rebellion against ad-heavy fitness apps.</p>
+          <div class="tags"><span>React Native</span><span>SQLite</span></div>
+          <div class="links"><a href="#">Live demo →</a><a href="#">Source →</a></div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="experience">
+      <p class="comment">// experience.js — chronological, newest first</p>
+      <h2 class="sectitle">experience<span class="path">src/experience.js</span></h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="meta">2023 — present</div>
+          <h3><span class="role">Senior Software Engineer</span>, Northline Systems</h3>
+          <p>Lead engineer for the payments infrastructure team. Rebuilt the transaction pipeline to handle 4x traffic with no added latency.</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="meta">2020 — 2023</div>
+          <h3><span class="role">Software Engineer</span>, Fieldhouse Labs</h3>
+          <p>Built and shipped the core scheduling product from zero to 40,000 active users. Owned the API layer end to end.</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="meta">2018 — 2020</div>
+          <h3><span class="role">Junior Developer</span>, Kettlecorn Digital</h3>
+          <p>Started on the front-end team, moved into full-stack work within a year. First real job, first real production incident.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="contact">
+      <p class="comment">// contact.js — reach out</p>
+      <h2 class="sectitle">contact<span class="path">src/contact.js</span></h2>
+      <div class="contact-body">
+        <div class="contact-row"><span class="k">email</span><a href="mailto:alex@example.com">alex@example.com</a></div>
+        <div class="contact-row"><span class="k">github</span><a href="#">github.com/alexrivera</a></div>
+        <div class="contact-row"><span class="k">linkedin</span><a href="#">linkedin.com/in/alexrivera</a></div>
+        <div class="contact-row"><span class="k">location</span><span style="color:var(--text-dim)">Remote / Open to relocation</span></div>
+      </div>
+    </section>
+
+    <footer>
+      // built with vanilla HTML, CSS &amp; JS — no framework required
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const files = document.querySelectorAll('.sidebar .file');
+  const sections = document.querySelectorAll('main section[id]');
+
+  function setActive(target){
+    tabs.forEach(t => {
+      const on = t.dataset.target === target;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', on);
+    });
+    files.forEach(f => f.classList.toggle('active', f.dataset.target === target));
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.target;
+      document.getElementById(target).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        setActive(entry.target.id);
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+  sections.forEach(sec => observer.observe(sec));
+</script>
+
+</body>
+</html>
