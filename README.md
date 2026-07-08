@@ -1,4 +1,4 @@
-# Alex Rivera — Personal Portfolio
+# Dani Joshua — Personal Portfolio
 
 A single-page developer portfolio styled like a code editor: tab bar, file-explorer sidebar, line-numbered sections, and a typing hero line. No build tools, no dependencies — just one HTML file.
 
